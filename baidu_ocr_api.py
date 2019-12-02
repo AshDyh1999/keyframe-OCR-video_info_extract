@@ -10,11 +10,9 @@ desc: 调用百度OCRapi实现文本识别
 import base64
 from urllib import parse, request
 import json
- 
-# ak = '8de2c127fcfe427092c52f283adaf120'
-# sk = '74934f1992e54211871110650f9ea0ee'
-ak = 'v4ri9rThSC29iKyPufgCDUTa'
-sk = 'al9FONUC6aEynghjpODQXLGyCgibTeKD'
+
+ak = ''
+sk = ''
 
 def GetAccessToken(ak, sk):
     '''
@@ -117,5 +115,5 @@ def Recognise(img_path):
  
  
 # msg = Recognise('./img/1.jpg')
-msg = Recognise('./video/Most_Popular_Programming_Languages_1965_-_2019/2545.jpg')
+msg = Recognise('./video/Most_Popular_Programming_Languages_1965_-_2019/80.jpg')
 print(msg)
