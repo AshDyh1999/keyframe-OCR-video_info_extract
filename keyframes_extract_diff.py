@@ -127,13 +127,13 @@ def rel_change(a, b):
 if __name__ == "__main__":
     print(sys.executable)
     #Setting fixed threshold criteria
-    USE_THRESH = False
+    USE_THRESH = True
     #fixed threshold value
-    THRESH = 0.6
+    THRESH = 0.05
     #Setting fixed threshold criteria
     USE_TOP_ORDER = False
     #Setting local maxima criteria
-    USE_LOCAL_MAXIMA = True
+    USE_LOCAL_MAXIMA = False
     #Number of top sorted frames
     NUM_TOP_FRAMES = 50
      
@@ -181,12 +181,13 @@ if __name__ == "__main__":
     if USE_THRESH:
         print("Using Threshold")
         for i in range(1, len(frames)):
-            if (rel_change(np.float(frames[i - 1].diff), np.float(frames[i].diff)) >= THRESH):
+            if (rel_change(np.float(frames[i - 1].diff), np.float(frames[i].diff)) <= THRESH):
                 keyframe_id_set.add(frames[i].id)   
     if USE_LOCAL_MAXIMA:
         print("Using Local Maxima")
         diff_array = np.array(frame_diffs)
-        sm_diff_array = smooth(diff_array, len_window)
+        # sm_diff_array = smooth(diff_array, len_window)
+        sm_diff_array = diff_array
         frame_indexes = np.asarray(argrelextrema(sm_diff_array, np.greater))[0]
         for i in frame_indexes:
             keyframe_id_set.add(frames[i - 1].id)
