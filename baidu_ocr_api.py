@@ -80,7 +80,7 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
     :param probability:是否返回识别结果中每一行的置信度
     :return:https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic
     '''
-    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate?access_token=%s' % access_token
+    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=%s' % access_token
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     formdata = {'recognize_granularity': recognize_granularity, 'language_type': language_type,
                 'detect_direction': detect_direction, 'detect_language': detect_language,
@@ -98,7 +98,8 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
         datas = jobj['words_result']
         recognise = {}
         for obj in datas:
-            recognise[obj['words']] = obj["location"]
+            recognise[obj['words']] = obj["words"]
+            # recognise[obj['words']] = obj["words"]
         return recognise
  
  
@@ -110,10 +111,11 @@ def Recognise(img_path):
     # recognise = RecogniseForm(access_token=access_token, image=base64_data,templateSign=templateSign)    # 将此templateSign替换成自己设置的模板值
     recognise = RecogniseGeneral(access_token=access_token, image=base64_data)
     for k,v in recognise.items():
-        print(k, v)
+        print(k)
+        # print(k,v)
         pass
  
  
 # msg = Recognise('./img/1.jpg')
-msg = Recognise('./video/Most_Popular_Programming_Languages_1965_-_2019/80.jpg')
+msg = Recognise('./video/Most_Popular_Programming_Languages_1965_-_2019/2545.jpg')
 print(msg)
