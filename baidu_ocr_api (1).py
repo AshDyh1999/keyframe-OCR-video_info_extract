@@ -34,7 +34,6 @@ def GetAccessToken(ak, sk):
         expires_in = data['expires_in']
         return access_token, expires_in
 
- 
 def RecogniseGeneral(access_token, apitype='accurate_basic',image=None, url=None, recognize_granularity='big', language_type='CHN_ENG',
                      detect_direction=False, detect_language=False, vertexes_location=False, probability=False):
     '''
@@ -49,7 +48,6 @@ def RecogniseGeneral(access_token, apitype='accurate_basic',image=None, url=None
     :param vertexes_location:是否返回文字外接多边形顶点位置，不支持单字位置。默认为false
     :param probability:是否返回识别结果中每一行的置信度
     :return:https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic
-    webimage
     '''
     host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/%s?access_token=%s' % (apitype,access_token)
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -72,10 +70,8 @@ def RecogniseGeneral(access_token, apitype='accurate_basic',image=None, url=None
             recognise.append(obj["words"])
         return recognise
  
- 
 def Recognise(img_path,imgtype):
     '''
-
     :param img_path: 输入文件路径
     :param imgtype: 输入图片类型，1为RGB，2为灰度图或二值图
     :return:
@@ -133,13 +129,13 @@ def Recognise(img_path,imgtype):
         return result
 
 if __name__ == '__main__':
-    path='extract_result'
+    path='./extract_result'
     allimgs=os.listdir(path)
     allimgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
     premsg=['']
     for img in allimgs:
         print("处理%s中......" % img)
-
+        cv2.imread()
         img1 = cv2.imread(path+'/'+img, -1)
         img2 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
         cv2.imwrite(path + '/' + 'gray'+img, img2)
