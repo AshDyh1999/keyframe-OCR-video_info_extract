@@ -127,13 +127,13 @@ def rel_change(a, b):
 if __name__ == "__main__":
     print(sys.executable)
     #Setting fixed threshold criteria
-    USE_THRESH = True
+    USE_THRESH = False
     #fixed threshold value
     THRESH = 0.05
     #Setting fixed threshold criteria
     USE_TOP_ORDER = False
     #Setting local maxima criteria
-    USE_LOCAL_MAXIMA = False
+    USE_LOCAL_MAXIMA = True
     #Number of top sorted frames
     NUM_TOP_FRAMES = 50
      
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         diff_array = np.array(frame_diffs)
         # sm_diff_array = smooth(diff_array, len_window)
         sm_diff_array = diff_array
-        frame_indexes = np.asarray(argrelextrema(sm_diff_array, np.greater))[0]
+        frame_indexes = np.asarray(argrelextrema(-sm_diff_array, np.greater))[0]
         for i in frame_indexes:
             keyframe_id_set.add(frames[i - 1].id)
             
@@ -198,16 +198,16 @@ if __name__ == "__main__":
         plt.savefig(dir + 'plot.png')
     
     # save all keyframes as image
-    # cap = cv2.VideoCapture(str(videopath))
-    # curr_frame = None
-    # keyframes = []
-    # success, frame = cap.read()
-    # idx = 0
-    # while(success):
-    #     if idx in keyframe_id_set:
-    #         name = "keyframe_" + str(idx) + ".jpg"
-    #         cv2.imwrite(dir + name, frame)
-    #         keyframe_id_set.remove(idx)
-    #     idx = idx + 1
-    #     success, frame = cap.read()
-    # cap.release()
+    cap = cv2.VideoCapture(str(videopath))
+    curr_frame = None
+    keyframes = []
+    success, frame = cap.read()
+    idx = 0
+    while(success):
+        if idx in keyframe_id_set:
+            name = "keyframe_" + str(idx) + ".jpg"
+            cv2.imwrite(dir + name, frame)
+            keyframe_id_set.remove(idx)
+        idx = idx + 1
+        success, frame = cap.read()
+    cap.release()

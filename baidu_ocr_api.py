@@ -1,18 +1,18 @@
-# !/user/bin/env Python3
-# -*- coding:utf-8 -*-
- 
-"""
-file：baidu_api.py
-create time:2019/4/10 15:14
-author:Loong Xu
-desc: 调用百度OCRapi实现文本识别
-"""
 import base64
 from urllib import parse, request
 import json
+import os
+import csv
+from PIL import Image
+import cv2
 
-ak = ''
-sk = ''
+#my
+ak = 'VV5rAjwWQZHLonbN0DXtg4jN'
+sk = 'lPE8VqkbkT2T3opkt1XvPGxZRcytIiM5'
+
+
+# ak = 'v4ri9rThSC29iKyPufgCDUTa'
+# sk = 'al9FONUC6aEynghjpODQXLGyCgibTeKD'
 
 def GetAccessToken(ak, sk):
     '''
@@ -33,36 +33,7 @@ def GetAccessToken(ak, sk):
         access_token = data['access_token']
         expires_in = data['expires_in']
         return access_token, expires_in
- 
- 
-def RecogniseForm(access_token, image, templateSign=None, classifierId=None):
-    """
-    自定义模板文字识别
-    :param access_token:
-    :param image:图像数据（string），base64编码，注意大小不超过4M，最短边至少15px，最长边最大4096px，支持jpg/png/bmp格式
-    :param templateSign:模板ID（string）
-    :param classifierId:分类器ID（int），这个参数与templateSign至少存在一个，优先使用templateSign，存在templateSign时，使用指定模板；如果没有templateSign而有classifierld，表示使用分类器去判断使用模板
-    :return:返回识别结果
-    """
-    host = 'https://aip.baidubce.com/rest/2.0/solution/v1/iocr/recognise?access_token=%s' % access_token
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    formdata = {'image': image}
-    if templateSign is not None:
-        formdata['templateSign'] = templateSign
-    if classifierId is not None:
-        formdata['classifierId'] = classifierId
-    data = parse.urlencode(formdata).encode('utf8')
-    req = request.Request(method='POST', url=host, headers=headers, data=data)
-    response = request.urlopen(req)
-    if (response.status == 200):
-        jobj = json.loads(response.read().decode())
-        datas = jobj['data']
-        recognise = {}
-        for obj in datas['ret']:
-            recognise[obj['word_name']] = obj['word']
-        return recognise
- 
- 
+
 def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='big', language_type='CHN_ENG',
                      detect_direction=False, detect_language=False, vertexes_location=False, probability=False):
     '''
@@ -78,7 +49,7 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
     :param probability:是否返回识别结果中每一行的置信度
     :return:https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic
     '''
-    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=%s' % access_token
+    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/webimage?access_token=%s' % access_token
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     formdata = {'recognize_granularity': recognize_granularity, 'language_type': language_type,
                 'detect_direction': detect_direction, 'detect_language': detect_language,
@@ -90,30 +61,108 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
     data = parse.urlencode(formdata).encode('utf8')
     req = request.Request(method='POST', url=host, headers=headers, data=data)
     response = request.urlopen(req)
-    print(response)
+    # print(response)
     if (response.status == 200):
         jobj = json.loads(response.read().decode())
         datas = jobj['words_result']
-        recognise = {}
+        recognise = []
         for obj in datas:
-            recognise[obj['words']] = obj["words"]
-            # recognise[obj['words']] = obj["words"]
+            recognise.append(obj["words"])
         return recognise
- 
  
 def Recognise(img_path):
     access_token, expires_in = GetAccessToken(ak, sk) # 将此ak与sk替换成自己应用的值
     with open(file=img_path, mode='rb') as file:
         base64_data = base64.b64encode(file.read())
-    # 调用iOCR自定义模板文字识别接口
-    # recognise = RecogniseForm(access_token=access_token, image=base64_data,templateSign=templateSign)    # 将此templateSign替换成自己设置的模板值
+
     recognise = RecogniseGeneral(access_token=access_token, image=base64_data)
-    for k,v in recognise.items():
-        print(k)
-        # print(k,v)
-        pass
- 
- 
-# msg = Recognise('./img/1.jpg')
-msg = Recognise('./video/Most_Popular_Programming_Languages_1965_-_2019/80.jpg')
-print(msg)
+    #剔除不必要的数据，如开始的度量值，以及中间出现的Popular Programming Languages
+    result = []
+    flag=0
+    for i in recognise:
+        if i[0] >= 'A' and i[0] <= 'Z':
+            flag=1
+        if i =='Popular' or i=='Programming' or i=='Languages':
+            continue
+        if flag==1:
+            result.append(i)
+    #将最后一项时间提到列表刚开始,表示为1999.Q1
+    year=result[-1][:4]
+    quarter=result[-1][-2:]
+    del result[-1]
+    time=year+"."+quarter
+    result.insert(0,time)
+    return result
+
+if __name__ == '__main__':
+    path='./extract_result'
+    allimgs=os.listdir(path)
+    # allimgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
+    premsg=['']
+    for img in allimgs:
+        print("处理%s中......" % img)
+    
+        img1 = cv2.imread(path+'/'+img, -1)
+        img2 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
+        cv2.imwrite(path + '/' + 'gray'+img, img2)
+        msg1 = Recognise(path + '/' + 'gray'+img)
+        msg2 = Recognise(path + '/'+img)
+        if len(msg1)<len(msg2):
+            msg=msg2
+        else:
+            msg=msg1
+    
+        #结尾几张图片一致就相当于结束了
+        if msg[0]==premsg[0]:
+            break
+    
+        #写入csv
+        with open('test.csv', 'a+', newline='')as f:
+            f_csv = csv.writer(f)
+            f_csv.writerow(msg)
+    
+        #记录上一组值
+        premsg=[]
+        for i in msg:
+            premsg.append(i)
+
+
+    # 测试单个图片用---------------------------------------------------------------------------
+    # number = '7982'
+    # imgpath = path + '/' + number + '.jpg'
+    # img = cv2.imread(imgpath, -1)
+    # height, width = img.shape[:2]
+    # # 放大图像
+    # fx = 2
+    # fy = 2
+    # enlarge = cv2.resize(img, (0, 0), fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)
+
+    # cv2.imwrite(path + '/' + number + '_2.png', enlarge)
+
+    # img2 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # cv2.imwrite(path + '/' + number + '_3.png', img2)
+
+    # #原图像
+    # msg = Recognise(path + '/' + number + '.jpg')
+    # print('原始图像：%s' %msg)
+    # #放大的图像
+    # msg = Recognise(path + '/' + number + '_2.png')
+    # print('放大图像：%s' %msg)
+    # #灰度图
+    # msg = Recognise(path + '/' + number + '_3.png')
+    # print('灰度图像：%s' %msg)
+
+    # img=Image.open(path + '/' + number + '.jpg')
+    # img=img.convert('L')
+    # threshold=200
+    # table=[]
+    # for i in range(256):
+    #     if i<threshold:
+    #         table.append(0)
+    #     else:
+    #         table.append(1)
+    # imggray=img.point(table,'1')
+    # imggray.save(path + '/'+number +'_4.jpg')
+    # #二值图像
+    # msg = Recognise(path + '/'+number +'_4.jpg')
+    # print('二值图像：%s' %msg)
