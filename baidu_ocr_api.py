@@ -6,14 +6,17 @@ import csv
 from PIL import Image
 import cv2
 
-#my
-ak = 'VV5rAjwWQZHLonbN0DXtg4jN'
-sk = 'lPE8VqkbkT2T3opkt1XvPGxZRcytIiM5'
+#zbw
+# ak = 'VV5rAjwWQZHLonbN0DXtg4jN'
+# sk = 'lPE8VqkbkT2T3opkt1XvPGxZRcytIiM5'
 
-
+#mine
 # ak = 'v4ri9rThSC29iKyPufgCDUTa'
 # sk = 'al9FONUC6aEynghjpODQXLGyCgibTeKD'
 
+#zjt
+ak = '4y4H1UDLKgUIm2O0hX0MtTP7'
+sk = '0WxOr29QcyGDHI51Q8YA3q5VM78dYxfB'
 def GetAccessToken(ak, sk):
     '''
     获取access_token代码
@@ -34,7 +37,7 @@ def GetAccessToken(ak, sk):
         expires_in = data['expires_in']
         return access_token, expires_in
 
-def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='big', language_type='CHN_ENG',
+def RecogniseGeneral(access_token, apitype='accurate_basic',image=None, url=None, recognize_granularity='big', language_type='CHN_ENG',
                      detect_direction=False, detect_language=False, vertexes_location=False, probability=False):
     '''
     通用文字识别（含位置信息）
@@ -49,7 +52,7 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
     :param probability:是否返回识别结果中每一行的置信度
     :return:https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic
     '''
-    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/webimage?access_token=%s' % access_token
+    host = 'https://aip.baidubce.com/rest/2.0/ocr/v1/%s?access_token=%s' % (apitype,access_token)
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     formdata = {'recognize_granularity': recognize_granularity, 'language_type': language_type,
                 'detect_direction': detect_direction, 'detect_language': detect_language,
@@ -64,19 +67,66 @@ def RecogniseGeneral(access_token, image=None, url=None, recognize_granularity='
     # print(response)
     if (response.status == 200):
         jobj = json.loads(response.read().decode())
+        response.close()
         datas = jobj['words_result']
         recognise = []
         for obj in datas:
             recognise.append(obj["words"])
+        
         return recognise
- 
-def Recognise(img_path):
+        
+def Recognise(img_name):
+    access_token, expires_in = GetAccessToken(ak, sk) # 将此ak与sk替换成自己应用的值
+    
+    time_img_path = './time_info/'
+    fixed_img_path = './fixed_img/'
+    gray_fixed_img_path = './gray_fixed_img/'
+    
+    with open(file=time_img_path + img_name, mode='rb') as file:
+        base64_data = base64.b64encode(file.read())
+        recognise_time = RecogniseGeneral(apitype='accurate_basic',access_token=access_token, image=base64_data)
+   
+    with open(file=fixed_img_path + img_name, mode='rb') as file:
+        base64_data = base64.b64encode(file.read())
+        recognise_fix = RecogniseGeneral(apitype='webimage',access_token=access_token, image=base64_data)
+   
+    with open(file=gray_fixed_img_path + img_name, mode='rb') as file:
+        base64_data = base64.b64encode(file.read())
+        gray_recognise_fix = RecogniseGeneral(apitype='webimage',access_token=access_token, image=base64_data)
+
+    #剔除不必要的数据，如开始的度量值，以及中间出现的Popular Programming Languages
+    result = []
+    if len(recognise_fix) > len(gray_recognise_fix):
+        recognise = recognise_fix
+    else:
+        recognise = gray_recognise_fix
+
+    flag=0
+    for i in recognise:
+        if i[0] >= 'A' and i[0] <= 'Z':
+            flag=1
+        if i =='Popular' or i=='Programming' or i=='Languages':
+            continue
+        if flag==1:
+            result.append(i)
+
+    if len(result):
+        #将最后一项时间提到列表刚开始,表示为1999.Q1
+        year=recognise_time[0][:4]
+        quarter=recognise_time[0][-2:]
+        time=year+"."+quarter
+        result.insert(0,time)
+        return result
+    else:
+        return result
+
+def Recognise_test(img_path):
     access_token, expires_in = GetAccessToken(ak, sk) # 将此ak与sk替换成自己应用的值
     with open(file=img_path, mode='rb') as file:
         base64_data = base64.b64encode(file.read())
-
-    recognise = RecogniseGeneral(access_token=access_token, image=base64_data)
-    #剔除不必要的数据，如开始的度量值，以及中间出现的Popular Programming Languages
+    # 调用iOCR自定义模板文字识别接口
+    # recognise = RecogniseForm(access_token=access_token, image=base64_data,templateSign=templateSign)    # 将此templateSign替换成自己设置的模板值
+    recognise = RecogniseGeneral(apitype='webimage' ,access_token=access_token, image=base64_data) #general_basic accurate_basic
     result = []
     flag=0
     for i in recognise:
@@ -86,83 +136,82 @@ def Recognise(img_path):
             continue
         if flag==1:
             result.append(i)
-    #将最后一项时间提到列表刚开始,表示为1999.Q1
-    year=result[-1][:4]
-    quarter=result[-1][-2:]
-    del result[-1]
-    time=year+"."+quarter
-    result.insert(0,time)
     return result
 
 if __name__ == '__main__':
-    path='./extract_result'
-    allimgs=os.listdir(path)
-    # allimgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
-    premsg=['']
-    for img in allimgs:
-        print("处理%s中......" % img)
+
+    fixed_img_path = './fixed_img'
+    # fixed_img_path = './key_frames'
+    # all_fixed_imgs = os.listdir(fixed_img_path)
+
+    # all_fixed_imgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
+    # premsg=['']
+    # for img in all_fixed_imgs:
+    #     print("处理%s中......" % img)
+    #     img1 = cv2.imread(fixed_img_path+'/'+img, -1)
+    #     msg = Recognise(img)
     
-        img1 = cv2.imread(path+'/'+img, -1)
-        img2 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
-        cv2.imwrite(path + '/' + 'gray'+img, img2)
-        msg1 = Recognise(path + '/' + 'gray'+img)
-        msg2 = Recognise(path + '/'+img)
-        if len(msg1)<len(msg2):
-            msg=msg2
+    #     #结尾几张图片一致就相当于结束了
+    #     if msg[0]==premsg[0]:
+    #         break
+    #     #写入csv
+    #     with open('test2.csv', 'a+', newline='')as f:
+    #         f_csv = csv.writer(f)
+    #         f_csv.writerow(msg)
+    #     #记录上一组值
+    #     premsg=[]
+    #     for i in msg:
+    #         premsg.append(i)
+
+
+    # 测试单个图片用186 187 193-197 202-208---------------------------85原图优秀212灰度优秀
+    number = '212'
+    img_path = fixed_img_path + '/' + number + '.jpg'
+    img = cv2.imread(img_path, -1)
+    height, width = img.shape[:2]
+    # 放大图像
+    fx = 2
+    fy = 2
+    enlarge = cv2.resize(img, (0, 0), fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)
+
+    cv2.imwrite(number + '_large.png', enlarge)
+
+    img2 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    cv2.imwrite(number + '_gray.png', img2)
+    
+    #原图像
+    msg = Recognise_test(img_path)
+    print('图像路径:'+img_path)
+    print('原始图像：%s' %msg)
+    #放大的图像
+    msg = Recognise_test(number + '_large.png')
+    print('放大图像：%s' %msg)
+    #灰度图
+    msg = Recognise_test(number + '_gray.png')
+    print('灰度图像：%s' %msg)
+
+    img=Image.open(fixed_img_path + '/' + number + '.jpg')
+    img=img.convert('L')
+    threshold=200
+    table=[]
+    for i in range(256):
+        if i<threshold:
+            table.append(0)
         else:
-            msg=msg1
-    
-        #结尾几张图片一致就相当于结束了
-        if msg[0]==premsg[0]:
-            break
-    
-        #写入csv
-        with open('test.csv', 'a+', newline='')as f:
-            f_csv = csv.writer(f)
-            f_csv.writerow(msg)
-    
-        #记录上一组值
-        premsg=[]
-        for i in msg:
-            premsg.append(i)
+            table.append(1)
+    imggray=img.point(table,'1')
+    imggray.save(number +'_blackwhite.jpg')
+    #二值图像
+    msg = Recognise_test(number +'_blackwhite.jpg')
+    print('二值图像：%s' %msg)
 
-
-    # 测试单个图片用---------------------------------------------------------------------------
-    # number = '7982'
-    # imgpath = path + '/' + number + '.jpg'
-    # img = cv2.imread(imgpath, -1)
-    # height, width = img.shape[:2]
-    # # 放大图像
-    # fx = 2
-    # fy = 2
-    # enlarge = cv2.resize(img, (0, 0), fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)
-
-    # cv2.imwrite(path + '/' + number + '_2.png', enlarge)
-
-    # img2 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    # cv2.imwrite(path + '/' + number + '_3.png', img2)
-
-    # #原图像
-    # msg = Recognise(path + '/' + number + '.jpg')
-    # print('原始图像：%s' %msg)
-    # #放大的图像
-    # msg = Recognise(path + '/' + number + '_2.png')
-    # print('放大图像：%s' %msg)
-    # #灰度图
-    # msg = Recognise(path + '/' + number + '_3.png')
-    # print('灰度图像：%s' %msg)
-
-    # img=Image.open(path + '/' + number + '.jpg')
-    # img=img.convert('L')
-    # threshold=200
-    # table=[]
-    # for i in range(256):
-    #     if i<threshold:
-    #         table.append(0)
-    #     else:
-    #         table.append(1)
-    # imggray=img.point(table,'1')
-    # imggray.save(path + '/'+number +'_4.jpg')
-    # #二值图像
-    # msg = Recognise(path + '/'+number +'_4.jpg')
-    # print('二值图像：%s' %msg)
+    #右部
+    img_right = img[50:,140:,:]
+    cv2.imwrite(number + '_right.png', img_right)
+    msg = Recognise_test(number + '_right.png')
+    print('右部：' + str(msg))
+    #左部
+    img_left = img[50:,0:140,:]
+    cv2.imwrite(number + '_left.png', img_left)
+    msg = Recognise_test(number + '_left.png')
+    print('左部：' + str(msg))
