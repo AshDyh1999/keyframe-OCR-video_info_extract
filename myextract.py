@@ -1,35 +1,31 @@
 import cv2
-import operator
 import numpy as np
-import matplotlib.pyplot as plt
 import sys
-from scipy.signal import argrelextrema
 from scipy.stats.stats import  pearsonr
 import time
 from tqdm import tqdm,trange
 
-if __name__ == "__main__":
-    print(sys.executable)
+if __name__ == "__main__":   
+    #相关性阈值
     THREADHOLD = 0.99
-    #Video path of the source file
+    #视频路径（相对路径)
     videopath = 'Most_Popular_Programming_Languages_1965_-_2019.mp4'
-    #Directory to store the processed frames
+    #存帧的路径
     dir = './key_frames/'
     time_img_dir = './time_info/'
     fixed_img_dir = './fixed_img/'
     gray_fixed_img_dir = './gray_fixed_img/'
-    print("target video :" + videopath)
-    print("key_frames save directory: " + dir)
 
-    # load video and compute diff between frames
-    cap = cv2.VideoCapture(str(videopath)) 
+    #加载视频
+    cap = cv2.VideoCapture(str(videopath))
+    #总帧数
+    frames_num=cap.get(7) 
     curr_frame = None
     prev_frame = None 
     frame_coor = []
     frames = []
     #开始计时
-    start_time = time.time()
-    
+    start_time = time.time()    
     #单独保存第一帧
     success, frame = cap.read()
     cv2.imwrite(dir + "1.jpg", frame)
@@ -40,17 +36,18 @@ if __name__ == "__main__":
     cv2.imwrite(fixed_img_dir + "1.jpg", frame_fixed)
     frame_fixed_gray = cv2.cvtColor(frame_fixed, cv2.COLOR_RGB2GRAY)
     cv2.imwrite(gray_fixed_img_dir + '1.jpg', frame_fixed_gray)
-    
+    #计数读取的帧数
     i = 1 
+    #计数要保存的帧数
     num = 1
-    # while(success):
-    for i in trange(8903):
+    #不用while(success):换用tqdm可以展示进度条
+    for i in trange(int(frames_num)-1):
         frame_time = frame[560:,800:,:]
         luv = cv2.cvtColor(frame_time, cv2.COLOR_BGR2LUV)
         curr_frame = luv
         if curr_frame is not None and prev_frame is not None:
-            #logic here
-            img0= curr_frame.reshape(curr_frame.size, order='C')  # 将矩阵转换成向量。按行转换成向量，第一个参数就是矩阵元素的个数
+            # 将矩阵转换成向量。按行转换成向量，第一个参数就是矩阵元素的个数
+            img0= curr_frame.reshape(curr_frame.size, order='C')  
             img1= prev_frame.reshape(prev_frame.size, order='C')
             # corr = np.corrcoef(img0, img0)[0, 1]
             #皮尔逊相关系数0.99为阈值
