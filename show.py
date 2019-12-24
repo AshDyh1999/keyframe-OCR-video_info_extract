@@ -19,7 +19,7 @@ with open('1.csv')as f:
         plt.cla()
         # 绘制水平柱状图
         plt.title(title,fontsize=15)
-        plt.bar(x, y)
+        plt.bar(x, y, facecolor = 'lightskyblue',edgecolor = 'white')
         plt.xticks(fontsize=15)
         plt.yticks(fontsize=15)
         for x, y in zip(x, y):  # zip是将X，Y1分别传到x,y中，传两个
