@@ -1,10 +1,11 @@
 *.png
 *.csv
+!1.csv
 *.rar
-fixd_img/*
-/key_frame/*.jpg
-time_info/
-gray_fixed_img/
-allframe/
-Visualization/*
+fixed_img/*.jpg
+key_frames/*.jpg
+time_info/*.jpg
+gray_fixed_img/*.jpg
+allframe/*.jpg
+Visualization/
 *.mp4
