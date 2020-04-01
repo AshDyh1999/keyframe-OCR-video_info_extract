@@ -7,5 +7,7 @@ key_frames/*.jpg
 time_info/*.jpg
 gray_fixed_img/*.jpg
 allframe/*.jpg
+!1.jpg
 Visualization/
 *.mp4
+show1.py
