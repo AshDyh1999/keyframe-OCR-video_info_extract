@@ -2,8 +2,9 @@
 *.csv
 *.rar
 fixd_img/*
-key_frame/*
-time_info/*
-gray_fixed_img/*
+/key_frame/*.jpg
+time_info/
+gray_fixed_img/
+allframe/
 Visualization/*
 *.mp4
