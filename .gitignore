@@ -1,8 +1,9 @@
 *.png
 *.csv
 *.rar
+fixd_img/*
+key_frame/*
+time_info/*
+gray_fixed_img/*
+Visualization/*
 *.mp4
-/fixd_img/*.jpg
-/key_frame/*.jpg
-/time_info/*.jpg
-/gray_fixed_img/*.jpg
