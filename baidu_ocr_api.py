@@ -141,77 +141,66 @@ def Recognise_test(img_path):
 if __name__ == '__main__':
 
     fixed_img_path = './fixed_img'
-    # fixed_img_path = './key_frames'
-    # all_fixed_imgs = os.listdir(fixed_img_path)
+    fixed_img_path = './key_frames'
+    all_fixed_imgs = os.listdir(fixed_img_path)
 
-    # all_fixed_imgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
-    # premsg=['']
-    # for img in all_fixed_imgs:
-    #     print("处理%s中......" % img)
-    #     img1 = cv2.imread(fixed_img_path+'/'+img, -1)
-    #     msg = Recognise(img)
-    
-    #     #结尾几张图片一致就相当于结束了
-    #     if msg[0]==premsg[0]:
-    #         break
-    #     #写入csv
-    #     with open('test2.csv', 'a+', newline='')as f:
-    #         f_csv = csv.writer(f)
-    #         f_csv.writerow(msg)
-    #     #记录上一组值
-    #     premsg=[]
-    #     for i in msg:
-    #         premsg.append(i)
+    all_fixed_imgs.sort(key=lambda x: int(x.split('.')[0]))  # 排序
+    premsg=['']
+    for img in all_fixed_imgs:
+        print("处理%s中......" % img)
+        img1 = cv2.imread(fixed_img_path+'/'+img, -1)
+        msg = Recognise(img)
+    #     time.sleep(t)
+        #结尾几张图片一致就相当于结束了
+        if msg[0]==premsg[0]:
+            break
+        #写入csv
+        with open('test2.csv', 'a+', newline='')as f:
+            f_csv = csv.writer(f)
+            f_csv.writerow(msg)
+        #记录上一组值
+        premsg=[]
+        for i in msg:
+            premsg.append(i)
 
 
     # 测试单个图片用186 187 193-197 202-208---------------------------85原图优秀212灰度优秀
-    number = '212'
-    img_path = fixed_img_path + '/' + number + '.jpg'
-    img = cv2.imread(img_path, -1)
-    height, width = img.shape[:2]
-    # 放大图像
-    fx = 2
-    fy = 2
-    enlarge = cv2.resize(img, (0, 0), fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)
+    # number = '113'
+    # img_path = fixed_img_path + '/' + number + '.jpg'
+    # img = cv2.imread(img_path, -1)
+    # height, width = img.shape[:2]
+    # # 放大图像
+    # fx = 2
+    # fy = 2
+    # enlarge = cv2.resize(img, (0, 0), fx=fx, fy=fy, interpolation=cv2.INTER_CUBIC)
 
-    cv2.imwrite(number + '_large.png', enlarge)
+    # cv2.imwrite(number + '_large.png', enlarge)
 
-    img2 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    cv2.imwrite(number + '_gray.png', img2)
+    # img2 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # cv2.imwrite(number + '_gray.png', img2)
     
-    #原图像
-    msg = Recognise_test(img_path)
-    print('图像路径:'+img_path)
-    print('原始图像：%s' %msg)
-    #放大的图像
-    msg = Recognise_test(number + '_large.png')
-    print('放大图像：%s' %msg)
-    #灰度图
-    msg = Recognise_test(number + '_gray.png')
-    print('灰度图像：%s' %msg)
+    # #原图像
+    # msg = Recognise_test(img_path)
+    # print('图像路径:'+img_path)
+    # print('原始图像：%s' %msg)
+    # #放大的图像
+    # msg = Recognise_test(number + '_large.png')
+    # print('放大图像：%s' %msg)
+    # #灰度图
+    # msg = Recognise_test(number + '_gray.png')
+    # print('灰度图像：%s' %msg)
 
-    img=Image.open(fixed_img_path + '/' + number + '.jpg')
-    img=img.convert('L')
-    threshold=200
-    table=[]
-    for i in range(256):
-        if i<threshold:
-            table.append(0)
-        else:
-            table.append(1)
-    imggray=img.point(table,'1')
-    imggray.save(number +'_blackwhite.jpg')
-    #二值图像
-    msg = Recognise_test(number +'_blackwhite.jpg')
-    print('二值图像：%s' %msg)
-
-    #右部
-    img_right = img[50:,140:,:]
-    cv2.imwrite(number + '_right.png', img_right)
-    msg = Recognise_test(number + '_right.png')
-    print('右部：' + str(msg))
-    #左部
-    img_left = img[50:,0:140,:]
-    cv2.imwrite(number + '_left.png', img_left)
-    msg = Recognise_test(number + '_left.png')
-    print('左部：' + str(msg))
+    # img=Image.open(fixed_img_path + '/' + number + '.jpg')
+    # img=img.convert('L')
+    # threshold=200
+    # table=[]
+    # for i in range(256):
+    #     if i<threshold:
+    #         table.append(0)
+    #     else:
+    #         table.append(1)
+    # imggray=img.point(table,'1')
+    # imggray.save(number +'_blackwhite.jpg')
+    # #二值图像
+    # msg = Recognise_test(number +'_blackwhite.jpg')
+    # print('二值图像：%s' %msg)
