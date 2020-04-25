@@ -6,17 +6,8 @@ import csv
 from PIL import Image
 import cv2
 
-#zbw
-# ak = 'VV5rAjwWQZHLonbN0DXtg4jN'
-# sk = 'lPE8VqkbkT2T3opkt1XvPGxZRcytIiM5'
-
-#mine
-# ak = 'v4ri9rThSC29iKyPufgCDUTa'
-# sk = 'al9FONUC6aEynghjpODQXLGyCgibTeKD'
-
-#zjt
-ak = '4y4H1UDLKgUIm2O0hX0MtTP7'
-sk = '0WxOr29QcyGDHI51Q8YA3q5VM78dYxfB'
+ak = ''
+sk = ''
 def GetAccessToken(ak, sk):
     '''
     获取access_token代码
