@@ -11,8 +11,8 @@ import base64
 from urllib import parse, request
 import json
 from PIL import Image
-ak = 'v4ri9rThSC29iKyPufgCDUTa'
-sk = 'al9FONUC6aEynghjpODQXLGyCgibTeKD'
+ak = ''
+sk = ''
 
 def GetAccessToken(ak, sk):
     '''
